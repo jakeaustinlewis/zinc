@@ -1,15 +1,13 @@
-
 'use strict';
 
 /* eslint-env browser */
 
 (() => {
-    function populateList(results) {
+function populateList(results) {
         let userList = document.getElementById("z-user-list");
         console.log(results); // eslint-disable-line no-console
           for (let i=0; i<results.length; i++){
 
-                    
                     let user = document.createElement("li");
                     user.classList.add("user");
 
@@ -35,14 +33,39 @@
 
                     user.append(userPhoto, userName, userLocation, userEmail);
                     userList.append(user);
-                    // userList.classList.add("user-list");
                 }
     }
+
+    function replacer (match, p1, offset, string) {
+
+    }
+
+    function renderTemplate(str, data) {
+        console.log('string: ', str);
+        console.log('obj: ', data);
+
+        let string = /{{\s*([A-Za-z0-9-]+)\s*}}/;
+        console.log(string);
+
+
+        data.forEach(element => {
+            let newString = str.replace(string, [data.photo, data.firstName, data.lastName, data.city, data.state, data.email]);
+            console.log(newString);
+        })
+
 
     function init() {
         fetch('https://randomuser.me/api/?results=5')
             .then(res => res.json())
-            .then(json => populateList(json.results));
+            .then(json => {
+                let string = `<li class="user">
+                        <img class="user-photo" src="{{ photo }}" alt="Photo of {{ firstName }} {{ lastName }}">
+                        <div class="user-name">{{ firstName }} {{ lastName }}</div>
+                        <div class="user-location">{{ city }}, {{ state }}</div>
+                        <div class="user-email">{{ email }}</div>
+                    </li>`;
+
+                renderTemplate(string ,json.results);
     }
 
     document.addEventListener('DOMContentLoaded', init);
