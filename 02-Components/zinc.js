@@ -6,7 +6,9 @@ const Zinc = {};
 
 
 (() => {
-    function renderComponent(element, content, userData) {
+
+
+    function renderComponent1(element, content, userData) {
 
         fetch(`user.html`)
         .then(template => template.text())
@@ -22,7 +24,7 @@ const Zinc = {};
     }
 
     function init() {
-        renderComponent('user-item', 'user', Zinc.userData);
+        renderComponent1('user-item', 'user', Zinc.userData);
     }
 
     document.addEventListener('DOMContentLoaded', init);
