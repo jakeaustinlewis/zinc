@@ -4,13 +4,25 @@
 
 const Zinc = {};
 
+
 (() => {
-    function renderComponent(element, content) {
-        console.log(element, content); // eslint-disable-line no-console
+    function renderComponent(element, content, userData) {
+
+        fetch(`user.html`)
+        .then(template => template.text())
+        .then(template => {
+            let matchString = /{{\s*([\w.]+)\s*}}/g;
+
+            let user = template.replace(matchString, (match, captured) => {
+                let arr = captured.split('.');
+                return arr.reduce((acc, curr) => acc[curr], userData);
+            })
+            document.getElementsByTagName('user-item')[0].insertAdjacentHTML('beforeend', user);
+        });
     }
 
     function init() {
-        renderComponent('user-item', 'user', userData);
+        renderComponent('user-item', 'user', Zinc.userData);
     }
 
     document.addEventListener('DOMContentLoaded', init);
