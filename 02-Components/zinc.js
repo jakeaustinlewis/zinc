@@ -4,42 +4,38 @@
 
 const Zinc = {};
 
-
-
 (() => {
 
-    function reviewStackUserList() {
-        let elements = Array.from(document.getElementsByTagName('user-list'));
-        if(elements){
-            Zinc.registerComponent({
-                name: 'user-list',
-                templateFile: 'userlist',
-                data: user,
-                controller: hilight,
-            });
-            renderComponents(Zinc.components);
+    function reviewStackLine(parentNode) {
+        if (parentNode.childNodes.length === 0) {
+            return;
         }
-    }
-    function reviewStackUserInfo() {
-        let elements = Array.from(document.getElementsByTagName('user-info'));
-        if(elements){
-            Zinc.registerComponent({
-                name: 'user-list',
-                templateFile: 'userlist',
-                data: user,
-                controller: hilight,
-            });
-            renderComponents(Zinc.components);
-        }
-    }
-    function hilight() {
-                            
-            this.firstElementChild.classList.toggle('hilight');
-            // event.currentTarget.classList.toggle('hilight');
+
+        Array.from(parentNode.childNodes).forEach(child => {
+            if (child.tagName !== undefined) {
+                let currentComponent = Zinc.components[child.tagName.toLowerCase()];
+                if (currentComponent) {
+                    // renderComponents(currentComponent);
+                    renderComponent1(currentComponent.name, currentComponent.templateFile, currentComponent.data, currentComponent.controller);
+                    console.log(currentComponent);
+                } else {
+                    reviewStackLine(child);
+                }
+            }
+        })
+
+
     }
 
-    // Zinc.registerComponent = function (elementName, templateFile, dataObject, controller) {
-        Zinc.registerComponent = function(configObj) {
+    function hilight() {
+
+        this.firstElementChild.classList.toggle('hilight');
+        // event.currentTarget.classList.toggle('hilight');
+    }
+
+    // add tagname, templatefile, API data, and controller information to object
+    Zinc.registerComponent = function (configObj) {
+
         if (!Zinc.components) {
             Zinc.components = {};
         }
@@ -50,9 +46,9 @@ const Zinc = {};
             templateFile: configObj.templateFile,
             data: configObj.data,
             controller: configObj.controller
+
         };
     }
-
 
     function renderComponent1(element, content, data, controller) {
         let elements = Array.from(document.getElementsByTagName(element));
@@ -71,12 +67,12 @@ const Zinc = {};
                         return templateValueArr.reduce((acc, curr) => acc[curr], data)
                     })
 
-                    console.log(Array.from(element.children));
                     element.addEventListener('click', controller);
                     element.insertAdjacentHTML('beforeend', HTML);
-                    reviewStackUserList();
-                    reviewStackUserInfo()
+
+                    reviewStackLine(element);
                 })
+
             })
     }
 
@@ -97,7 +93,7 @@ const Zinc = {};
 
     function init() {
 
-        fetch('https://randomuser.me/api/?results=3')
+        fetch('https://randomuser.me/api/?results=1')
             .then(res => res.json())
             .then(data => {
                 data.results.forEach(user => {
@@ -108,10 +104,9 @@ const Zinc = {};
                         data: user,
                         controller: hilight,
                     });
-                    renderComponents(Zinc.components);
-                })
+                    // renderComponents(Zinc.components);
 
-                data.results.forEach(user => {
+
 
                     Zinc.registerComponent({
                         name: 'user-info',
@@ -120,7 +115,10 @@ const Zinc = {};
                         controller: hilight,
                     });
                     renderComponents(Zinc.components);
+
                 })
+
+
             })
     }
 
