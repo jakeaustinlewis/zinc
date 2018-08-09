@@ -4,98 +4,112 @@
 
 const Zinc = {};
 
-
-
 (() => {
 
-    function hilight() {
-            console.log(this);
-                            
-            this.firstElementChild.classList.toggle('hilight');
-            // event.currentTarget.classList.toggle('hilight');
-
-            console.log('click');
+    function reviewStackLine(parentNode) {
+        console.log('parentNode: ', parentNode);
+        console.log('ChildNodes: ', parentNode.childNodes);
+        if (parentNode.childNodes.length === 0) {
+            return;
+        } else {
+            Array.from(parentNode.childNodes).forEach(child => {
+                if (child.tagName !== undefined) {
+                    let currentComponent = Zinc.components[child.tagName.toLowerCase()];
+                    if (currentComponent) {
+                        // console.log(currentComponent);
+                        renderComponent1(currentComponent);
+                    } else {
+                        reviewStackLine(child);
+                    }
+                }
+            })
+            return;
+        }
     }
 
-    // Zinc.registerComponent = function (elementName, templateFile, dataObject, controller) {
-        Zinc.registerComponent = function (configObj) {
+    function hilight() {
+
+        this.firstElementChild.classList.toggle('hilight');
+
+    }
+
+    // add tagname, templatefile, API data, and controller information to object
+    Zinc.registerComponent = function (configObj) {
+
         if (!Zinc.components) {
             Zinc.components = {};
         }
-
-        Zinc.components[configObj.name] = {
-            name: configObj.name,
-            templateFile: configObj.templateFile,
-            data: configObj.data,
-            controller: configObj.controller
-        };
+        Zinc.components[configObj.name] = configObj;
     }
 
-    function renderComponent1(element, content, data, controller) {
-        let elements = Array.from(document.getElementsByTagName(element));
-        console.log(element, content, data, controller);
 
-        fetch(`${content}.html`)
+
+    function renderComponent1(component) {
+
+        fetch(`${component.templateFile}.html`)
             .then(content => content.text())
             .then((content) => {
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(content, "text/html");
+                let newNode = doc.body.firstChild;
+                let elements = Array.from(newNode.querySelectorAll(component.name));
 
-                elements.forEach(element => {
+                reviewStackLine(newNode);
 
-                    let regEx = /{{\s*([\w.]+)\s*}}/g;
-                    let HTML = content.replace(regEx, (match, templateValue) => {
-                        let templateValueArr = templateValue.split('.');
-                        return templateValueArr.reduce((acc, curr) => acc[curr], data)
-                    })
 
-                    element.addEventListener('click', controller);
-                    element.insertAdjacentHTML('beforeend', HTML);
-                })
+                // elements.forEach(element => {
+
+                //     let regEx = /{{\s*([\w.]+)\s*}}/g;
+                //     let HTML = content.replace(regEx, (match, templateValue) => {
+                //         let templateValueArr = templateValue.split('.');
+                //         return templateValueArr.reduce((acc, curr) => acc[curr], component.data)
+                //     })
+
+                //     element.addEventListener('click', component.controller);
+                //     element.insertAdjacentHTML('beforeend', HTML);
+
+                //     reviewStackLine(element);
+                // })
+
             })
     }
 
     // passing components = Zinc.components
     function renderComponents(components) {
-        console.log(components);
         // looping through the keys and values of components object
         for (let component in components) {
 
             //passing content in object to function to render components (put content in html) 
             renderComponent1(
-
-                components[component].name,
-                components[component].templateFile,
-                components[component].data,
-                components[component].controller)
+                components[component]
+            )
         }
     }
 
     function init() {
-        // Zinc.registerComponent('user-item', 'user', Zinc.userData, controller);
-        // renderComponents(Zinc.components);
 
-        fetch('https://randomuser.me/api/?results=1')
+        Zinc.registerComponent({
+            name: 'user-list',
+            templateFile: 'userlist'
+        });
+
+
+        fetch('https://randomuser.me/api/?results=3')
             .then(res => res.json())
             .then(data => {
-                data.results.forEach(user => {
+                data.results.forEach((user, index) => {
 
                     Zinc.registerComponent({
-                        name: 'user-item',
+                        name: `user-info${index}`,
                         templateFile: 'user',
                         data: user,
-                        controller: hilight,
-                        // ... and so on
+                        controller: hilight
                     });
-                    renderComponents(Zinc.components);
+
+
                 })
+                renderComponents(Zinc.components);
             })
-
-
-
-        // renderTemplate2(userTemplate, data.results);
-        // renderTemplate('user', data.results);
-
-
-
     }
 
     document.addEventListener('DOMContentLoaded', init);
